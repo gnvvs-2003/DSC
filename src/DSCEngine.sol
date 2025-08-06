@@ -83,7 +83,7 @@ contract DSCEngine is ReentrancyGuard {
      * @param amountCollateral: The amount of collateral you're depositing
      */
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        external
+        public
         moreThanZero(amountCollateral)
         nonReentrant
         isAllowedToken(tokenCollateralAddress)
@@ -96,8 +96,6 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-    function depositCollateralAndMintDsc() external {}
-
     function mintDsc(uint256 amountDscToMint) public moreThanZero(amountDscToMint) {
         s_DSCMinted[msg.sender] += amountDscToMint;
         // if added DSC breaks the health factor
@@ -107,6 +105,24 @@ contract DSCEngine is ReentrancyGuard {
         if (!minted) {
             revert DSCEngine__MintFailed();
         }
+    }
+
+    /*
+
+    * @param tokenCollateralAddress: the address of the token to deposit as collateral
+    * @param amountCollateral: The amount of collateral to deposit
+    * @param amountDscToMint: The amount of DecentralizedStableCoin to mint
+    * @notice: This function will deposit your collateral and mint DSC in one transaction
+
+    */
+
+    function depositCollateralAndMintDsc(
+        address tokenCollateralAddress,
+        uint256 amountCollateral,
+        uint256 amountDscToMint
+    ) external {
+        depositCollateral(tokenCollateralAddress, amountCollateral);
+        mintDsc(amountDscToMint);
     }
 
     function redeemCollateralForDsc() external {}
