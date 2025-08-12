@@ -34,6 +34,7 @@ contract DSCEngine is ReentrancyGuard {
 
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200%
     uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant LIQUIDATION_BONUS = 10;
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
 
     // ------------------MAPPINGS----------------//
@@ -173,7 +174,46 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender); // This is most probably won't be hitting
     }
 
-    function liquidate() external {}
+    /**
+     * @notice : Illustration for liquidation
+     * user deposited $100 worth token(ETH) as collateral and mints $50 DSC
+     * IF the collateral value falls i.e under collateralized
+     * Another user(liquidator) can clear the debt of the user and claim his collateral
+     * Additionally the liquidator gets a bonus of 10%
+     * @param collateral : The token address of the collateral i.e ETH
+     * @param user : user to be liquidated
+     * @param debtToCover : debt to be covered by liquidator
+     * @notice LIQUIDATION BONUS = 10%
+     */
+    function liquidate(address collateral, address user, uint256 debtToCover)
+        external
+        moreThanZero(debtToCover)
+        nonReentrant
+    {
+        uint256 startingUserHealthFactor = _healthFactor(user);
+        // if not under collateralized
+        if (startingUserHealthFactor > MIN_HEALTH_FACTOR) {
+            revert DSCEngine__HealthFactorIsOk();
+        }
+        // now liquidation begins
+        uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
+        // 10% bonus for liquidator
+        uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
+        // total amount
+        uint256 totalCollateralRedeemed = tokenAmountFromDebtCovered + bonusCollateral;
+    }
+    /**
+     *
+     * @param token : Address of the token i.e collateral
+     * @param usdAmountInWEI : amount in WEI
+     * @notice User pricefeed from Aggregator
+     */
+
+    function getTokenAmountFromUsd(address token, uint256 usdAmountInWEI) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        return ((usdAmountInWEI * PRECISION) / uint256(price) * ADDITIONAL_FEED_PRECISION);
+    }
 
     function getHealthFactor() external view {}
 
@@ -247,4 +287,5 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__TransferFailed();
     error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
     error DSCEngine__MintFailed();
+    error DSCEngine__HealthFactorIsOk();
 }
