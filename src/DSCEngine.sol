@@ -303,8 +303,12 @@ contract DSCEngine is ReentrancyGuard {
         return (((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION);
     }
 
+    // getters 
+    
+
     // --------------------------ERRORS------------------//
     error DSCEngine__TokenAddressesAndPriceFeedAddressesAmountsDontMatch();
+    error DSCEngine__NoTokensExist();
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenNotAllowed(address token);
     error DSCEngine__TransferFailed();
