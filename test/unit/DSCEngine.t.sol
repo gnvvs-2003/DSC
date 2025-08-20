@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "../mocks/ERC20Mock.sol";
 import {MockERC20FailTransfer} from "../mocks/MockERC20FailTransfer.sol";
 import {MockFailedTransferFrom} from "../mocks/MockFailedTransferFrom.sol";
+import {MockFailedTransfer} from "../mocks/MockFailedTransfer.sol";
 import {MockFailedMintDSC} from "../mocks/MockFailedMintDSC.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
@@ -278,5 +279,33 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
         uint256 userBalance = dsc.balanceOf(USER);
         assertEq(userBalance, 0);
+    }
+
+    /**
+     * @notice : Redeem collateral function tests
+     * @notice : Needs its own setup
+     */
+    function test__revertIfTransferFails() public {
+        address owner = msg.sender;
+        vm.prank(owner);
+        MockFailedTransfer mockDsc = new MockFailedTransfer();
+        tokenAddress = [address(mockDsc)];
+        priceFeedAddress = [ethUsdPriceFeed];
+        vm.prank(owner);
+
+        DSCEngine engine = new DSCEngine(tokenAddress, priceFeedAddress, address(mockDsc));
+
+        mockDsc.mint(USER, amountCollateral);
+        // transfer the ownership
+        vm.prank(owner);
+        mockDsc.transferOwnership(address(engine));
+        // change to user
+        vm.startPrank(USER);
+        ERC20Mock(address(mockDsc)).approve(address(engine), amountCollateral);
+        // deposit and redeem
+        engine.depositCollateral(address(mockDsc), amountCollateral);
+        vm.expectRevert(DSCEngine.DSCEngine__TransferFailed.selector);
+        engine.redeemCollateral(address(mockDsc), amountCollateral);
+        vm.stopPrank();
     }
 }
