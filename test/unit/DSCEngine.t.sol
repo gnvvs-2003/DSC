@@ -284,6 +284,12 @@ contract DSCEngineTest is Test {
     /**
      * @notice : Redeem collateral function tests
      * @notice : Needs its own setup
+     * 1. Make a failed transaction 
+     * 2. mint 
+     * 3. transfer the ownership to engine
+     * 4. aprove 
+     * 5. deposit collateral
+     * 6. redeem collateral
      */
     function test__revertIfTransferFails() public {
         address owner = msg.sender;
@@ -308,4 +314,16 @@ contract DSCEngineTest is Test {
         engine.redeemCollateral(address(mockDsc), amountCollateral);
         vm.stopPrank();
     }
+
+    function test__redeemAmountIsGreaterThanZero() public{
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(engine),amountCollateral);
+        engine.depositCollateralAndMintDsc(weth,amountCollateral,amountToMint);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        engine.redeemCollateral(weth,0);
+        vm.stopPrank();
+    }
+
+    
+
 }
