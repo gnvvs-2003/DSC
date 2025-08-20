@@ -337,6 +337,10 @@ contract DSCEngine is ReentrancyGuard {
         return PRECISION;
     }
 
+    function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
+        return s_collateralDeposited[user][token];
+    }
+
     // --------------------------ERRORS------------------//
 
     error DSCEngine__TokenAddressesAndPriceFeedAddressesAmountsDontMatch();

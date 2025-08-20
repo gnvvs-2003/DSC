@@ -324,6 +324,26 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    
+    function test__redeemCollateral() public depositedCollateral{
+        vm.startPrank(USER);
+        uint256 initialUserBalance = engine.getCollateralBalanceOfUser(USER,weth);
+        assertEq(initialUserBalance,amountCollateral);
+        engine.redeemCollateral(weth,amountCollateral);
+        uint256 userBalanceAfterRedeemCollateral = engine.getCollateralBalanceOfUser(USER,weth);
+        assertEq(userBalanceAfterRedeemCollateral,0);
+        vm.stopPrank();
+    }
+
+    function test__emitCollateralRedeemedWithCorrectArguments() public depositedCollateral{
+        vm.expectEmit(true,true,true,true,address(engine));
+        emit DSCEngine.CollateralRedeemed(USER,USER,weth,amountCollateral);
+        vm.startPrank(USER);
+        engine.redeemCollateral(weth,amountCollateral);
+        vm.stopPrank();
+    }
+
+
+
+
 
 }
