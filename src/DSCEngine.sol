@@ -217,8 +217,6 @@ contract DSCEngine is ReentrancyGuard {
         return ((usdAmountInWEI * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION));
     }
 
-    function getHealthFactor() external view {}
-
     // -----------------------INTERNAL FUNCTIONS----------//
 
     function _revertIfHealthFactorIsBroken(address user) internal view {
@@ -339,6 +337,10 @@ contract DSCEngine is ReentrancyGuard {
 
     function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
         return s_collateralDeposited[user][token];
+    }
+
+    function getHealthFactor(address user) external view returns (uint256) {
+        return _healthFactor(user);
     }
 
     // --------------------------ERRORS------------------//
