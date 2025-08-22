@@ -343,6 +343,14 @@ contract DSCEngine is ReentrancyGuard {
         return _healthFactor(user);
     }
 
+    function getLiquidationBonus() external pure returns (uint256) {
+        return LIQUIDATION_BONUS;
+    }
+
+    function getLiquidationPrecision() external pure returns (uint256) {
+        return LIQUIDATION_PRECISION;
+    }
+
     // --------------------------ERRORS------------------//
 
     error DSCEngine__TokenAddressesAndPriceFeedAddressesAmountsDontMatch();
