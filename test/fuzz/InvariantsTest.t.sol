@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
 
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
@@ -48,6 +49,11 @@ contract InvariantTest is StdInvariant, Test {
 
         uint256 wethValue = engine.getUsdValue(weth, totalWethDeposited);
         uint256 wbtcValue = engine.getUsdValue(wbtc, totalWbtcDeposited);
+
+        console.log("Total supply = ",totalSupply);
+        console.log("weth value = ",wethValue);
+        console.log("wbtc value = ",wbtcValue);
+        console.log("No of times mint called  = ",handler.timesMintIsCalled());
 
         assert(wethValue + wbtcValue >= totalSupply);
     }

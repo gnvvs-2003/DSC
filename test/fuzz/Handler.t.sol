@@ -17,6 +17,10 @@ contract Handler is Test {
     DSCEngine engine;
     DecentralizedStableCoin dsc;
 
+    uint256 public timesMintIsCalled;
+
+    address [] usersWithCollateralDeposited;
+
     constructor(DSCEngine _engine, DecentralizedStableCoin _dsc) {
         engine = _engine;
         dsc = _dsc;
@@ -36,6 +40,7 @@ contract Handler is Test {
         collateral.approve(address(engine), amountCollateral);
         engine.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
+        usersWithCollateralDeposited.push(msg.sender);
     }
 
     // Redeem collateral
@@ -51,19 +56,24 @@ contract Handler is Test {
 
     // mint DSC
 
-    function mintDsc(uint256 amount) public{
-        (uint256 totalDscMinted,uint256 collateralValueInUSD) = engine.getAccountInformation(msg.sender);
+    function mintDsc(uint256 amount,uint256 addressSeed) public{
+        if(usersWithCollateralDeposited.length == 0){
+            return ;
+        }
+        address sender = usersWithCollateralDeposited[addressSeed%usersWithCollateralDeposited.length];
+        (uint256 totalDscMinted,uint256 collateralValueInUSD) = engine.getAccountInformation(sender);
         uint256 maxDscToMint = (collateralValueInUSD/2) - totalDscMinted;
         if(maxDscToMint < 0){
             return ;
         }
         amount = bound(amount,0,maxDscToMint);
-        if(amount <= 0){
+        if(amount < 0){
             return ;
         }
         vm.startPrank(msg.sender);
         engine.mintDsc(amount);
         vm.stopPrank();
+        timesMintIsCalled+=1;
     }
 
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock) {
