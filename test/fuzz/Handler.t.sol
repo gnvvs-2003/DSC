@@ -27,6 +27,8 @@ contract Handler is Test{
         wbtc = ERC20Mock(collateralTokens[1]);
     }
 
+    // Deposit collateral
+
     function depositCollateral(uint256 collateralSeed , uint256 amountCollateral) public{
         amountCollateral = bound(amountCollateral,1,MAX_DEPOSIT_SIZE);
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
@@ -36,6 +38,19 @@ contract Handler is Test{
         engine.depositCollateral(address(collateral),amountCollateral);
         vm.stopPrank();
     }
+
+    // Redeem collateral
+    function redeemCollateral(uint256 collateralSeed,uint256 amountCollateral) public{
+        ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
+        uint256 maxCollateralToRedeem = engine.getCollateralBalanceOfUser(address(collateral),msg.sender);
+        amountCollateral = bound(amountCollateral,0,maxCollateralToRedeem);
+        if (amountCollateral == 0){
+            return ;
+        }
+        engine.redeemCollateral(address(collateral),amountCollateral);
+    }
+
+
 
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns(ERC20Mock){
         if (collateralSeed % 2 == 0){
