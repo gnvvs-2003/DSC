@@ -21,7 +21,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * 1. View getter functions
  * 2. The total supply of DSC < the total valuation of collateral
  */
-
 contract InvariantTest is StdInvariant, Test {
     // In the stdInvariant we are going to set the target contract
     DeployDSC deployer;
@@ -37,8 +36,8 @@ contract InvariantTest is StdInvariant, Test {
     function setUp() external {
         deployer = new DeployDSC();
         (dsc, engine, config) = deployer.run();
-        handler = new Handler(engine,dsc);
-        (, , weth, wbtc, ) = config.activeNetworkConfig();
+        handler = new Handler(engine, dsc);
+        (,, weth, wbtc,) = config.activeNetworkConfig();
         targetContract(address(handler));
     }
 
